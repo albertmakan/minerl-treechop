@@ -26,7 +26,6 @@ class ConvNetwork(nn.Module):
         out = nnf.relu(self.lin1(out))
         out = self.lin2(out)
         out[:, 2:] = torch.sigmoid(out[:, 2:])
-
         return out
 
     def predict(self, x):
