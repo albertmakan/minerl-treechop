@@ -3,8 +3,7 @@ import numpy as np
 
 
 def rgb2gray(image):
-    # return np.dot(image[..., :3], [0.2989, 0.5870, 0.1140])
-    return image @ np.array([0.2989, 0.5870, 0.1140]).reshape(-1, 1)
+    return image @ np.array([[0.2989], [0.5870], [0.1140]])
 
 
 class DatasetWrapper:

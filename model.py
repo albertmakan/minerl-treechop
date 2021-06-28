@@ -5,8 +5,9 @@ import torch.nn.functional as nnf
 
 
 class ConvNetwork(nn.Module):
-    def __init__(self, in_channels=3):
+    def __init__(self, name, in_channels=3):
         super().__init__()
+        self.name = name
         self.conv1 = nn.Conv2d(in_channels, 32, (8, 8), (4, 4))
         self.conv2 = nn.Conv2d(32, 64, (4, 4), (2, 2))
         self.conv3 = nn.Conv2d(64, 64, (4, 4), (2, 2))
