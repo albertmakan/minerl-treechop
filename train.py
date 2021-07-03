@@ -1,7 +1,9 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from wrappers import DatasetWrapper, action2array
 from model import ConvNetwork
+from validation import accuracy
 
 
 def train(experiment: str, data_path: str, save_path: str = "models/", load_path: str = None,
@@ -20,19 +22,33 @@ def train(experiment: str, data_path: str, save_path: str = "models/", load_path
     camera_loss = torch.nn.MSELoss()
     actions_loss = torch.nn.BCELoss()
     optimizer = torch.optim.Adam(model.parameters(), learning_rate)
+    mean_errors, accuracies = [], []
 
-    mean_errors = []
     for epoch in range(epochs):
-        errors = []
+        errors, accurate, total = [], 0, 0
         for state, action in data.seq_iter(seq_len):
             print('.', end='')
             model.zero_grad()
             expected = torch.tensor(action2array(action, seq_len)).float().to(device)
             predicted = model(torch.tensor(state).float().to(device))
+            a, t = accuracy(expected, predicted)
+            accurate += a
+            total += t
             loss = camera_loss(predicted[:, :2], expected[:, :2]) + actions_loss(predicted[:, 2:], expected[:, 2:])
             errors.append(loss.cpu().detach().numpy().flatten())
             loss.backward()
             optimizer.step()
         torch.save(model, save_path+experiment)
         mean_errors.append(np.mean(errors))
-        print(f"Epoch {epoch+1}/{epochs} --- Mean Loss: {mean_errors[epoch]}")
+        accuracies.append(accurate/total)
+        print(f"Epoch {epoch+1}/{epochs} --- Mean Loss: {mean_errors[epoch]},\
+              Acc.: {accurate}/{total} ({accuracies[epoch]}%)")
+
+    plt.plot(mean_errors)
+    plt.xlabel('epochs')
+    plt.ylabel('mean error')
+    plt.show()
+    plt.plot(accuracies)
+    plt.xlabel('epochs')
+    plt.ylabel('accuracy')
+    plt.show()
