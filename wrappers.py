@@ -1,3 +1,4 @@
+import gym
 import minerl
 import numpy as np
 
@@ -24,3 +25,18 @@ def action2array(action_dict, seq_len):
     action_array[:, 3] = action_dict['jump']
     action_array[:, 4] = action_dict['attack']
     return action_array
+
+
+class FrameSkipWrapper(gym.Wrapper):
+    def __init__(self, env, skip=4):
+        super().__init__(env)
+        self.skip = skip
+
+    def step(self, action):
+        obs, total_reward, done, info = self.env.step(action)
+        for _ in range(self.skip-1):
+            if done:
+                break
+            obs, reward, done, info = self.env.step(action)
+            total_reward += reward
+        return obs, total_reward, done, info
