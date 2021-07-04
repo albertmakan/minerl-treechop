@@ -5,6 +5,7 @@ import torch
 
 
 def rollout(env, model, max_steps=1e6, video=False, seed=None):
+    model.eval()
     frames = []
     gray = model.conv1.in_channels == 1
     if seed is not None:
@@ -32,6 +33,7 @@ def accuracy(expected, predicted):
 
 
 def evaluate(model, test_data_path: str, seq_len=64):
+    model.eval()
     gray = model.conv1.in_channels == 1
     data = DatasetWrapper(test_data_path, gray)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -44,4 +46,4 @@ def evaluate(model, test_data_path: str, seq_len=64):
         c, t = accuracy(expected, predicted)
         correct += c
         total += t
-    print(f"Test accuracy: {correct}/{total} ({correct / total}%)")
+    print(f"\nTest accuracy: {correct}/{total} ({correct / total}%)")

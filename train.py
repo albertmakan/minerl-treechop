@@ -7,7 +7,7 @@ from validation import accuracy
 
 
 def train(experiment: str, data_path: str, save_path: str = "models/", load_path: str = None,
-          gray=False, seq_len=64, epochs=10, learning_rate=1e-4):
+          gray=False, seq_len=32, epochs=10, learning_rate=1e-4):
     data = DatasetWrapper(data_path, gray)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Training process started. (Device: {device})")
@@ -41,7 +41,7 @@ def train(experiment: str, data_path: str, save_path: str = "models/", load_path
         torch.save(model, save_path+experiment)
         mean_errors.append(np.mean(errors))
         accuracies.append(correct/total)
-        print(f"Epoch {epoch+1}/{epochs} --- Mean Loss: {mean_errors[epoch]},"
+        print(f"\nEpoch {epoch+1}/{epochs} --- Mean Loss: {mean_errors[epoch]}, "
               f"Acc.: {correct}/{total} ({accuracies[epoch]}%)")
 
     plt.plot(mean_errors)
