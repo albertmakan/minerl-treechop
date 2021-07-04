@@ -1,6 +1,6 @@
 from datetime import datetime
 from PIL import Image
-from wrappers import rgb2gray
+from wrappers import rgb2gray, DatasetWrapper, action2array
 import torch
 
 
@@ -21,11 +21,27 @@ def rollout(env, model, max_steps=1e6, video=False, seed=None):
         total_reward += reward
         steps += 1
     if video:
-        frames[0].save(f"videos/{model.name}_rollout_{datetime.now().strftime('%Y%m%d_%H%M%S')}.gif",
-                       save_all=True, append_images=frames, duration=50, loop=0)
+        img = frames[0]
+        img.save(f"videos/{model.name}_rollout_r{int(total_reward)}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.gif",
+                 save_all=True, append_images=frames, duration=50, loop=0)
     return total_reward
 
 
 def accuracy(expected, predicted):
-    return torch.sum(abs(expected[:, 2:]-predicted[:, 2:]) <= 0.5).item(), int(torch.numel(expected)/5*3)
+    return torch.sum(abs(expected[:, 2:] - predicted[:, 2:]) <= 0.5).item(), int(torch.numel(expected) / 5 * 3)
 
+
+def evaluate(model, test_data_path: str, seq_len=64):
+    gray = model.conv1.in_channels == 1
+    data = DatasetWrapper(test_data_path, gray)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Testing process started. (Device: {device})")
+    correct, total = 0, 0
+    for state, action in data.seq_iter(seq_len):
+        print('.', end='')
+        expected = torch.tensor(action2array(action, seq_len)).float().to(device)
+        predicted = model(torch.tensor(state).float().to(device))
+        c, t = accuracy(expected, predicted)
+        correct += c
+        total += t
+    print(f"Test accuracy: {correct}/{total} ({correct / total}%)")

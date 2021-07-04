@@ -34,7 +34,7 @@ class ConvNetwork(nn.Module):
         action_probabilities = out[2:].detach().numpy()
         sampled_actions = np.random.binomial(1, action_probabilities)
         return {
-            "camera": torch.clamp(out[:2], -180, 180).detach().numpy(),
+            "camera": torch.clamp(out[:2]*2, -180, 180).detach().numpy(),
             "forward": sampled_actions[0],
             "jump": sampled_actions[1],
             "attack": sampled_actions[2],

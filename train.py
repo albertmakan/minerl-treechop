@@ -25,14 +25,14 @@ def train(experiment: str, data_path: str, save_path: str = "models/", load_path
     mean_errors, accuracies = [], []
 
     for epoch in range(epochs):
-        errors, accurate, total = [], 0, 0
+        errors, correct, total = [], 0, 0
         for state, action in data.seq_iter(seq_len):
             print('.', end='')
             model.zero_grad()
             expected = torch.tensor(action2array(action, seq_len)).float().to(device)
             predicted = model(torch.tensor(state).float().to(device))
-            a, t = accuracy(expected, predicted)
-            accurate += a
+            c, t = accuracy(expected, predicted)
+            correct += c
             total += t
             loss = camera_loss(predicted[:, :2], expected[:, :2]) + actions_loss(predicted[:, 2:], expected[:, 2:])
             errors.append(loss.cpu().detach().numpy().flatten())
@@ -40,9 +40,9 @@ def train(experiment: str, data_path: str, save_path: str = "models/", load_path
             optimizer.step()
         torch.save(model, save_path+experiment)
         mean_errors.append(np.mean(errors))
-        accuracies.append(accurate/total)
-        print(f"Epoch {epoch+1}/{epochs} --- Mean Loss: {mean_errors[epoch]},\
-              Acc.: {accurate}/{total} ({accuracies[epoch]}%)")
+        accuracies.append(correct/total)
+        print(f"Epoch {epoch+1}/{epochs} --- Mean Loss: {mean_errors[epoch]},"
+              f"Acc.: {correct}/{total} ({accuracies[epoch]}%)")
 
     plt.plot(mean_errors)
     plt.xlabel('epochs')
